@@ -2,12 +2,19 @@
 
 
 // 1. Imports
+
 // 2. dotenv Config
+
 // 3. create express app & also get port from env
+
 // 4. Rate Limiting Definition
+
 // 5. Security Middlewares (helmet, mongoSanitize, hpp, )
+
 // 6. use Rate Limiting for APIs starts with (/api)
+
 // 7. use cookie parser
+
 // 8. use cors
 
 // 9. use morgan logger for dev-env
