@@ -1,0 +1,124 @@
+# ----------------------------------------
+# Node.js
+# ----------------------------------------
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Optional: keep lockfile if you want reproducible builds
+
+# ----------------------------------------
+# Build output
+# ----------------------------------------
+dist/
+build/
+public/build/
+.next/
+out/
+.esbuild/
+
+# ----------------------------------------
+# Coverage reports
+# ----------------------------------------
+coverage/
+*.lcov
+
+# ----------------------------------------
+# Environment variables
+# ----------------------------------------
+.env
+.env.*
+!.env.example
+
+# ----------------------------------------
+# Logs
+# ----------------------------------------
+logs/
+*.log
+*.log.*
+debug.log
+*.pid
+*.seed
+*.pid.lock
+
+# ----------------------------------------
+# OS/System files
+# ----------------------------------------
+.DS_Store
+Thumbs.db
+
+# ----------------------------------------
+# Editor & IDE files
+# ----------------------------------------
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# ----------------------------------------
+# Testing
+# ----------------------------------------
+jest.config.js
+jest.config.ts
+test-results/
+cypress/videos/
+cypress/screenshots/
+
+# ----------------------------------------
+# TypeScript
+# ----------------------------------------
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ----------------------------------------
+# Docker
+# ----------------------------------------
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# ----------------------------------------
+# Miscellaneous
+# ----------------------------------------
+*.pem
+*.key
+*.crt
+
+# ----------------------------------------
+# Firebase, Netlify, Vercel, etc.
+# ----------------------------------------
+.firebase/
+.netlify/
+.vercel/
+
+# ----------------------------------------
+# Monorepo tools
+# ----------------------------------------
+.pnpm-debug.log
+.turbo/
+turbo.json
+
+# ----------------------------------------
+# Storybook
+# ----------------------------------------
+.storybook-out/
+.storybook-static/
+
+# ----------------------------------------
+# React Native (if used)
+# ----------------------------------------
+android/
+ios/
+*.keystore
+*.gradle
+*.iml
+
+# ----------------------------------------
+# Optional: ignore compiled JavaScript if you're committing only TypeScript
+# ----------------------------------------
+# *.js
+# *.jsx
