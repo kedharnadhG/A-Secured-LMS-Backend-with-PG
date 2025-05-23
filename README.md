@@ -256,5 +256,83 @@ On success, Razorpay calls the handler() function with:
         Notify the user accordingly
 
 11. 🧠 Razorpay Documentation
-    For more details, refer to the [Razorpay Docs](https://razorpay.com/docs/payments/payment-gateway/web-integration/standard/integration-steps#1-build-integration).
+    For more details, refer to the [Razorpay Docs Web_Integration](https://razorpay.com/docs/payments/payment-gateway/web-integration/standard/integration-steps#1-build-integration). [Service Integration (Node)](https://razorpay.com/docs/payments/server-integration/nodejs/integration-steps/)
 
+---
+### 🔐 Razorpay Keys: Setup & Security
+To integrate Razorpay, you'll need two keys:
+
+RAZORPAY_KEY_ID – This is public-facing and can be used on the frontend (e.g., in Razorpay Checkout).
+
+RAZORPAY_SECRET – This is private and must be kept secure. It should never be exposed on the frontend or version control.
+
+###✅ Summary
+
+| Key Type          | Used In            | Secure?           | Purpose                 |
+| ----------------- | ------------------ | ----------------- | ----------------------- |
+| `RAZORPAY_KEY_ID` | Frontend + Backend | ✅ Safe to expose  | Identify merchant (you) |
+| `RAZORPAY_SECRET` | Backend only       | 🔐 Must be secret | Create & verify orders  |
+
+**Note**: For security reasons, it's recommended to store these keys in environment variables or a secure configuration file.
+
+---
+
+### 🔎 Final Verification in Production (Best Practices)
+Once Razorpay sends back the payment success response, and the signature is verified on your backend, you should do a double-check before marking the transaction as successful:
+
+✅ Why Double-Check?
+Even if the Razorpay signature is verified, you should reconfirm:
+
+The amount paid matches your intended amount.
+
+The order belongs to your system (not tampered).
+
+Status of payment is truly "captured" via Razorpay’s API.
+
+### 🧠 Step-by-Step Final Verification
+```js
+import Razorpay from "razorpay";
+
+const razorpayInstance = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_SECRET,
+});
+
+const finalVerify = async (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+  // 1. Signature Verification (Basic Check)
+  const crypto = require("crypto");
+  const generatedSignature = crypto
+    .createHmac("sha256", process.env.RAZORPAY_SECRET)
+    .update(razorpay_order_id + "|" + razorpay_payment_id)
+    .digest("hex");
+
+  if (generatedSignature !== razorpay_signature) {
+    return res.status(400).json({ success: false, message: "Invalid signature" });
+  }
+
+  // 2. Fetch payment details from Razorpay
+  const payment = await razorpayInstance.payments.fetch(razorpay_payment_id);
+
+  // 3. Match payment amount with order
+  if (payment.amount !== expectedAmount) {
+    return res.status(400).json({ success: false, message: "Amount mismatch!" });
+  }
+
+  // 4. Confirm payment is captured
+  if (payment.status !== "captured") {
+    return res.status(400).json({ success: false, message: "Payment not captured yet!" });
+  }
+
+  // ✅ All good - Mark order as successful in DB
+  res.json({ success: true, message: "Payment verified & amount matched", payment });
+};
+```
+
+⚠️ Important Notes
+    Use razorpayInstance.payments.fetch(payment_id) to get the full payment object.
+
+    Always compare amount, currency, status, and order_id.
+
+    Maintain logs in production for every verification step for traceability.
