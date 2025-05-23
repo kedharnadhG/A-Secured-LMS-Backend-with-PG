@@ -280,11 +280,14 @@ RAZORPAY_SECRET – This is private and must be kept secure. It should never be 
 ### 🔎 Final Verification in Production (Best Practices)
 Once Razorpay sends back the payment success response, and the signature is verified on your backend, you should do a double-check before marking the transaction as successful:
 
-✅ Why Double-Check?
+### ✅ Why Double-Check?
+
 Even if the Razorpay signature is verified, you should reconfirm:
-     ##### The amount paid matches your intended amount.
-     ##### The order belongs to your system (not tampered).
-      ##### Status of payment is truly "captured" via Razorpay’s API.
+
+- 🧾 The amount paid matches your intended amount.
+- 🔐 The order belongs to your system (not tampered).
+- 📥 Status of payment is truly `"captured"` via Razorpay’s API.
+
 
 ### 🧠 Step-by-Step Final Verification
 ```js
