@@ -118,3 +118,143 @@ By default, Mongoose virtuals are not included when converting documents to JSON
 toJSON: Used when returning responses via APIs (e.g., res.json()).
 
 toObject: Used internally or when you manually convert a document to a plain JavaScript object (e.g., for transformations or manipulation).
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+## 💳 Razorpay Payment Flow – Step-by-Step
+
+🔐 Important Notes
+
+| Step                 | Action                                |
+| -------------------- | ------------------------------------- |
+| Frontend -> Backend  | Initiates payment order               |
+| Razorpay Checkout    | User enters payment details           |
+| Razorpay -> Frontend | Sends success payload                 |
+| Frontend -> Backend  | Sends data for verification           |
+| Backend              | Validates using HMAC SHA256 signature |
+
+
+---
+
+### 1. 🛒 User Clicks "Buy Now"
+User selects a product (e.g., a course) and clicks the "Buy Now" button.  
+This triggers frontend logic to initiate the purchase flow.
+
+---
+### 2. 📡 Create Razorpay Order (Backend)
+Frontend sends a request to your backend (e.g., `POST /api/payments/order`) with:
+- `amount` (in paisa)
+- `currency` (e.g. `"INR"`)
+- metadata (course ID, user ID, etc.)
+
+**Backend sample:**
+```js
+      import Razorpay from "razorpay";
+
+      const razorpayInstance = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_SECRET,
+      });
+
+      const createOrder = async (req, res) => {
+        const options = {
+          amount: 50000, // 500.00 INR in paisa
+          currency: "INR",
+          receipt: "order_rcptid_11",
+        };
+
+        const order = await razorpayInstance.orders.create(options);
+        res.json({ success: true, order });
+      };
+   ```
+
+3. 📦 Return Order Details to Frontend
+    Your server responds with:
+        order.id
+        amount
+        currency
+    Frontend uses this data to initialize Razorpay checkout.
+
+4. 💻 Frontend Opens Razorpay Checkout UI
+Using Razorpay JS SDK, the frontend opens the payment modal:
+```js
+```js
+import Razorpay from "razorpay";
+      const options = {
+        key: "RAZORPAY_KEY_ID",
+        amount: order.amount,
+        currency: "INR",
+        name: "YourApp",
+        description: "Course Purchase",
+        order_id: order.id,
+        handler: function (response) {
+          // Trigger verification request to backend
+          verifyPayment(response);
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+        },
+        theme: { color: "#3399cc" },
+      };
+
+      const razorpay = new Razorpay(options);
+      razorpay.open();
+    ```
+User completes the payment using UPI, card, net banking, etc.
+
+5. ✅ Razorpay Returns Payment Details
+On success, Razorpay calls the handler() function with:
+    {
+      razorpay_payment_id: "pay_29QQoUBi66xm2f",
+      razorpay_order_id: "order_9A33XWu170gUtm",
+      razorpay_signature: "generated_signature"
+    }
+
+6. 🔄 Frontend Sends Payment Details to Backend for Verification
+      Send above data to backend POST /api/payments/verify.
+
+7. 🧠 Backend Verifies Payment Signature
+    Verifies authenticity of the transaction:
+
+```js
+    import crypto from "crypto";
+
+    const verifyPayment = (req, res) => {
+      const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+      const generatedSignature = crypto
+        .createHmac("sha256", process.env.RAZORPAY_SECRET)
+        .update(razorpay_order_id + "|" + razorpay_payment_id)
+        .digest("hex");
+
+      const isValid = generatedSignature === razorpay_signature;
+
+      if (isValid) {
+        // Save payment in DB, enroll course, etc.
+        res.json({ success: true, message: "Payment verified" });
+      } else {
+        res.status(400).json({ success: false, message: "Invalid signature" });
+      }
+    };
+```
+
+8. 🎉📡 Payment Confirmed 
+    Once verified:
+        Save payment details in DB.
+        Enroll user in the course.
+        Show a success message or redirect to confirmation page.
+
+9. ❌ Payment Failed
+      If payment fails (e.g., cancelled, insufficient balance):
+          Show an error message or retry option
+          Razorpay emits failure reasons in UI & callbacks
+10. 💸 Payment Refunded (Optional)
+    In case of refund:
+        Update your database with refund info
+        Notify the user accordingly
+
+11. 🧠 Razorpay Documentation
+    For more details, refer to the [Razorpay Docs](https://razorpay.com/docs/payments/payment-gateway/web-integration/standard/integration-steps#1-build-integration).
+
